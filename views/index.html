@@ -1,0 +1,659 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>JSSample</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
+    <!-- The SDK has a dependency on requirejs (http://requirejs.org/). -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
+
+    <!-- SDK REFERENCE -->
+    <script src="javascripts/speech.browser.sdk.js"></script>
+
+    <script src="javascripts/webgazer.js"></script>
+
+
+    <style>
+    .keyboard { margin-left: auto; margin-right: auto; left:0; right:0; font-size: 99px; position: absolute; bottom: 0; }
+    .keyboardRow { text-align:center }
+    .key { display:inline-block; text-align:center; width:99px; border:1px solid red; padding:10px;margin-bottom:10px; margin-top: 10px }
+    #space {
+        width:40%;
+        height:30px;
+    }
+    #input {
+        text-align: center;
+        position:relative;
+        font-size: 40px;
+    }
+    #backspace {
+        display: inline-block;
+        text-align: center;
+        width: 8%;
+        height:30px;
+        font-size: 20px;
+        padding:10px;
+        margin-bottom:10px;
+        margin-top: 10px;
+        border:1px solid red;
+    }
+/*    #text {
+
+    }*/
+</style>
+</head>
+<body>
+  <table width="100%" align="center" style="margin-left:50%;">
+      <tr style="display:none;">
+          <td></td>
+          <td>
+              <h1 style="font-weight:500;">Speech Recognition</h1>
+              <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
+          </td>
+      </tr>
+      <tr style="display:none;">
+          <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
+          <td><input id="key" type="text" size="40" value="a45fc8397b9d47feaebee0c5c2275c71"></td>
+      </tr>
+      <tr style="display:none;">
+          <td align="right">Language:</td>
+          <td align="left">
+              <select id="languageOptions">
+                  <option value="zh-CN">Chinese - CN</option>
+                  <option value="en-GB">English - GB</option>
+                  <option value="en-US" selected="selected">English - US</option>
+                  <option value="fr-FR">French - FR</option>
+                  <option value="de-DE">German - DE</option>
+                  <option value="it-IT">Italian - IT</option>
+                  <option value="es-ES">Spanish - ES</option>
+              </select>
+          </td>
+      </tr>
+      <tr style="display:none;">
+          <td align="right">Recognition Mode:</td>
+          <td align="left">
+              <select id="recognitionMode">
+                  <option value="Interactive">Interactive</option>
+                  <option value="Conversation">Conversation</option>
+                  <option value="Dictation">Dictation</option>
+              </select>
+          </td>
+      </tr>
+      <tr style="display:none;">
+          <td align="right">Format:</td>
+          <td align="left">
+              <select id="formatOptions">
+                  <option value="Simple" selected="selected">Simple Result</option>
+                  <option value="Detailed">Detailed Result</option>
+              </select>
+          </td>
+      </tr>
+      <tr style="display:none;">
+          <td align="right">Input:</td>
+          <td align="left">
+              <select id="inputSource">
+                  <option value="Mic" selected="selected">Microphone</option>
+                  <option value="File">Audio File</option>
+              </select>
+          </td>
+      </tr>
+      <tr>
+          <td></td>
+          <td>
+              <button id="startBtn" disabled="disabled">Start</button>
+              <button id="stopBtn" disabled="disabled">Stop</button>
+              <input type="file" id="filePicker" accept=".wav" style="display:none"/>
+          </td>
+      </tr>
+      <tr style="display:none;">
+          <td></td>
+          <td>
+              <table>
+                  <tr>
+                      <td>Results:</td>
+                      <td>Current hypothesis:</td>
+                  </tr>
+                  <tr>
+                      <td>
+                          <textarea id="phraseDiv" style="display: inline-block;width:500px;height:200px"></textarea>
+                      </td>
+                      <td style="vertical-align: top">
+                          <span id="hypothesisDiv" style="width:200px;height:200px;display:block;"></span>
+                      </td>
+                  </tr>
+              </table>
+          </td>
+      </tr>
+      <tr style="display:none;">
+          <td align="right">Status:</td>
+          <td align="left"><span id="statusDiv"></span></td>
+      </tr>
+  </table>
+    <div id="mydiv"></div>
+
+    <form onclick="">
+        Enter a url
+        <input type="text" id="url">
+        <button onclick="myFun(); return false">
+            Submit
+        </button>
+    </form>
+    <div id="message">
+    </div>
+    <div id="key">
+    </div>
+    <div id="emoji" style="font-size: 100px;">
+    </div>
+    <div id="input">
+        <!-- <input type="type" id="text"> -->
+    </div>
+
+
+        <div class="keyboard">
+            <div class="keyboardRow">   <span class="key">Q</span>
+            <span class="key">W</span>
+            <span class="key">E</span>
+            <span class="key">R</span>
+            <span class="key">T</span>
+            <span class="key">Y</span>
+            <span class="key">U</span>
+            <span class="key">I</span>
+            <span class="key">O</span>
+            <span class="key">P</span>
+
+            </div>
+            <div class="keyboardRow">   <span class="key">A</span>
+            <span class="key">S</span>
+            <span class="key">D</span>
+            <span class="key">F</span>
+            <span class="key">G</span>
+            <span class="key">H</span>
+            <span class="key">J</span>
+            <span class="key">K</span>
+            <span class="key">L</span>
+
+            </div>
+            <div class="keyboardRow">   <span class="key">Z</span>
+            <span class="key">X</span>
+            <span class="key">C</span>
+            <span class="key">V</span>
+            <span class="key">B</span>
+            <span class="key">N</span>
+            <span class="key">M</span>
+
+            </div>
+            <div class="keyboardRow">
+                <span class="key" id="space">&nbsp;</span>
+            </div>
+        </div>
+        <span style="text-align: center; display: inline-block;">
+        <button style="z-index: 0;" id="clear">Clear</button>
+    </span>
+
+
+        <script type="text/javascript">
+        function simulate(element, eventName)
+{
+    var options = extend(defaultOptions, arguments[2] || {});
+    var oEvent, eventType = null;
+
+    for (var name in eventMatchers)
+    {
+        if (eventMatchers[name].test(eventName)) { eventType = name; break; }
+    }
+
+    if (!eventType)
+        throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
+
+    if (document.createEvent)
+    {
+        oEvent = document.createEvent(eventType);
+        if (eventType == 'HTMLEvents')
+        {
+            oEvent.initEvent(eventName, options.bubbles, options.cancelable);
+        }
+        else
+        {
+            oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView,
+            options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY,
+            options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+        }
+        element.dispatchEvent(oEvent);
+    }
+    else
+    {
+        options.clientX = options.pointerX;
+        options.clientY = options.pointerY;
+        var evt = document.createEventObject();
+        oEvent = extend(evt, options);
+        element.fireEvent('on' + eventName, oEvent);
+    }
+    return element;
+    }
+
+    function extend(destination, source) {
+        for (var property in source)
+          destination[property] = source[property];
+        return destination;
+    }
+
+    var eventMatchers = {
+        'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+        'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+    }
+    var defaultOptions = {
+        pointerX: 0,
+        pointerY: 0,
+        button: 0,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true
+    }
+
+        function request(url) {
+            var params = {
+                // Request parameters
+            };
+            var body = "{'url': '"+ url +"'}"
+            return $.ajax({
+                url: "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize?" + $.param(params),
+                headers: {"Content-Type":"application/json",
+                        "Ocp-Apim-Subscription-Key":"405673de3a4740ccb0733aca7905b7e9"},
+                type: "POST",
+                // Request body
+                data: body
+            })
+            .done(function(data) {
+                return data
+            })
+            .fail(function(e) {
+                alert("error");
+            });
+        };
+        function getEmotion(data) {
+            let emotion = '';
+            let score = 0;
+            for (let e in data) {
+                if (data[e] > score) {
+                    score = data[e]
+                    emotion = e
+                }
+            }
+            return {
+                "emotion": emotion,
+                "score": score
+            }
+        }
+        function myFun(e) {
+            let url = $('#url').val();
+            request(url).done(function(data){
+                let emotion = getEmotion(data[0].scores)
+                $("#message").html(emotion.emotion + " " + emotion.score)
+                getEmoji(emotion.emotion);
+            })
+        }
+
+        $("#clear").on('click',function(){
+            $("#input").text("");
+        });
+        $(".key").on('click', function(e){
+            $("#key").html($(this).html());
+            $("#input").append($(this).html());
+        });
+        $("#backspace").on('click', function(){
+            $("#input").text(
+                $("#input").text().replace(/(s+)?.$/, ''))
+        });
+
+        function getEmoji(emotion) {
+            switch (emotion) {
+                case "anger":
+                    $("#emoji").html("&#x1f624");
+                    break;
+                case "happiness":
+                    $("#emoji").html("&#x1f600");
+                    break;
+                case "contempt":
+                    $("#emoji").html("&#x1f612");
+                    break;
+                case "disgust":
+                    $("#emoji").html("&#x1f637");
+                    break;
+                case "fear":
+                    $("#emoji").html("&#x1f628");
+                    break;
+                case "neutral":
+                    $("#emoji").html("&#x1f610;");
+                    break;
+                case "sadness":
+                    $("#emoji").html("&#x1f622");
+                    break;
+                case "surprise":
+                    $("#emoji").html("&#x1f632");
+                    break;
+                default:
+                    $("#emoji").html();
+            }
+        }
+
+        let eyePositions = [];
+        let recording = true;
+window.onload = function() {
+    webgazer.setRegression('ridge') /* currently must set regression and tracker */
+        .setTracker('clmtrackr')
+        .setGazeListener(function(data, clock) {
+            if (recording && data !== null) {
+                eyePositions.push(data);
+            } /* data is an object containing an x and y key which are the x and y prediction coordinates (no bounds limiting) */
+         //   console.log(clock); /* elapsed time in milliseconds since webgazer.begin() was called */
+
+        })
+        .begin()
+        .showPredictionPoints(true); /* shows a square every 100 milliseconds where current prediction is */
+
+    var width = 320;
+    var height = 240;
+    var topDist = '0px';
+    var leftDist = '0px';
+
+    var setup = function() {
+        var video = document.getElementById('webgazerVideoFeed');
+        video.style.display = 'block';
+        video.style.position = 'absolute';
+        video.style.top = topDist;
+        video.style.left = leftDist;
+        video.width = width;
+        video.height = height;
+        video.style.margin = '0px';
+
+        webgazer.params.imgWidth = width;
+        webgazer.params.imgHeight = height;
+
+        var overlay = document.createElement('canvas');
+        overlay.id = 'overlay';
+        overlay.style.position = 'absolute';
+        overlay.width = width;
+        overlay.height = height;
+        overlay.style.top = topDist;
+        overlay.style.left = leftDist;
+        overlay.style.margin = '0px';
+
+        document.body.appendChild(overlay);
+
+        var cl = webgazer.getTracker().clm;
+
+        function drawLoop() {
+            requestAnimFrame(drawLoop);
+            overlay.getContext('2d').clearRect(0,0,width,height);
+            if (cl.getCurrentPosition()) {
+                cl.draw(overlay);
+            }
+        }
+        drawLoop();
+    };
+
+    function checkIfReady() {
+        if (webgazer.isReady()) {
+            setup();
+        } else {
+            setTimeout(checkIfReady, 100);
+        }
+    }
+    setTimeout(checkIfReady,100);
+};
+
+
+window.onbeforeunload = function() {
+    //webgazer.end(); //Uncomment if you want to save the data even if you reload the page.
+    window.localStorage.clear(); //Comment out if you want to save data across different sessions
+}
+
+
+        <!-- SDK USAGE -->
+            // On document load resolve the SDK dependency
+            function Initialize(onComplete) {
+                require(["Speech.Browser.Sdk"], function(SDK) {
+                    onComplete(SDK);
+                });
+            }
+
+            // Setup the recognizer
+            function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
+
+                switch (recognitionMode) {
+                    case "Interactive" :
+                        recognitionMode = SDK.RecognitionMode.Interactive;
+                        break;
+                    case "Conversation" :
+                        recognitionMode = SDK.RecognitionMode.Conversation;
+                        break;
+                    case "Dictation" :
+                        recognitionMode = SDK.RecognitionMode.Dictation;
+                        break;
+                    default:
+                        recognitionMode = SDK.RecognitionMode.Interactive;
+                }
+
+                var recognizerConfig = new SDK.RecognizerConfig(
+                    new SDK.SpeechConfig(
+                        new SDK.Context(
+                            new SDK.OS(navigator.userAgent, "Browser", null),
+                            new SDK.Device("SpeechSample", "SpeechSample", "1.0.00000"))),
+                    recognitionMode,
+                    language, // Supported languages are specific to each recognition mode. Refer to docs.
+                    format); // SDK.SpeechResultFormat.Simple (Options - Simple/Detailed)
+
+
+                var useTokenAuth = false;
+
+                var authentication = function() {
+                    if (!useTokenAuth)
+                        return new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
+
+                    var callback = function() {
+                        var tokenDeferral = new SDK.Deferred();
+                        try {
+                            var xhr = new(XMLHttpRequest || ActiveXObject)('MSXML2.XMLHTTP.3.0');
+                            xhr.open('GET', '/token', 1);
+                            xhr.onload = function () {
+                                if (xhr.status === 200)  {
+                                    tokenDeferral.Resolve(xhr.responseText);
+                                } else {
+                                    tokenDeferral.Reject('Issue token request failed.');
+                                }
+                            };
+                            xhr.send();
+                        } catch (e) {
+                            window.console && console.log(e);
+                            tokenDeferral.Reject(e.message);
+                        }
+                        return tokenDeferral.Promise();
+                    }
+
+                    return new SDK.CognitiveTokenAuthentication(callback, callback);
+                }();
+
+                var files = document.getElementById('filePicker').files;
+                if (!files.length) {
+                    return SDK.CreateRecognizer(recognizerConfig, authentication);
+                } else {
+                    return SDK.CreateRecognizerWithFileAudioSource(recognizerConfig, authentication, files[0]);
+                }
+            }
+
+            // Start the recognition
+            function RecognizerStart(SDK, recognizer) {
+                recognizer.Recognize((event) => {
+                    /*
+                     Alternative syntax for typescript devs.
+                     if (event instanceof SDK.RecognitionTriggeredEvent)
+                    */
+                    switch (event.Name) {
+                        case "RecognitionTriggeredEvent" :
+                            UpdateStatus("Initializing");
+                            break;
+                        case "ListeningStartedEvent" :
+                            UpdateStatus("Listening");
+                            break;
+                        case "RecognitionStartedEvent" :
+                            UpdateStatus("Listening_Recognizing");
+                            break;
+                        case "SpeechStartDetectedEvent" :
+                            UpdateStatus("Listening_DetectedSpeech_Recognizing");
+                            console.log(JSON.stringify(event.Result)); // check console for other information in result
+                            break;
+                        case "SpeechHypothesisEvent" :
+                            UpdateRecognizedHypothesis(event.Result.Text, false);
+                            console.log(JSON.stringify(event.Result)); // check console for other information in result
+                            break;
+                        case "SpeechFragmentEvent" :
+                            UpdateRecognizedHypothesis(event.Result.Text, true);
+                            console.log(JSON.stringify(event.Result)); // check console for other information in result
+                            break;
+                        case "SpeechEndDetectedEvent" :
+                            OnSpeechEndDetected();
+                            UpdateStatus("Processing_Adding_Final_Touches");
+                            console.log(JSON.stringify(event.Result)); // check console for other information in result
+                            break;
+                        case "SpeechSimplePhraseEvent" :
+                            UpdateRecognizedPhrase(JSON.stringify(event.Result, null, 3));
+                            break;
+                        case "SpeechDetailedPhraseEvent" :
+                            UpdateRecognizedPhrase(JSON.stringify(event.Result, null, 3));
+                            break;
+                        case "RecognitionEndedEvent" :
+                            OnComplete();
+                            UpdateStatus("Idle");
+                            startBtn.click();
+                            if (event.text.indexOf("click") >= 0) {
+                              alert('click')
+                            }
+                            console.log(JSON.stringify(event)); // Debug information
+                            break;
+                        default:
+                            console.log(JSON.stringify(event)); // Debug information
+                    }
+                })
+                .On(() => {
+                    // The request succeeded. Nothing to do here.
+                },
+                (error) => {
+                    console.error(error);
+                });
+            }
+
+            // Stop the Recognition.
+            function RecognizerStop(SDK, recognizer) {
+                // recognizer.AudioSource.Detach(audioNodeId) can be also used here. (audioNodeId is part of ListeningStartedEvent)
+                recognizer.AudioSource.TurnOff();
+            }
+
+        <!-- Browser Hooks -->
+            var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv;
+            var key, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
+            var SDK;
+            var recognizer;
+            var previousSubscriptionKey;
+
+            document.addEventListener("DOMContentLoaded", function () {
+                createBtn = document.getElementById("createBtn");
+                startBtn = document.getElementById("startBtn");
+                stopBtn = document.getElementById("stopBtn");
+                phraseDiv = document.getElementById("phraseDiv");
+                hypothesisDiv = document.getElementById("hypothesisDiv");
+                statusDiv = document.getElementById("statusDiv");
+                key = document.getElementById("key");
+                languageOptions = document.getElementById("languageOptions");
+                formatOptions = document.getElementById("formatOptions");
+                inputSource = document.getElementById("inputSource");
+                recognitionMode = document.getElementById("recognitionMode");
+                filePicker = document.getElementById('filePicker');
+
+                languageOptions.addEventListener("change", Setup);
+                formatOptions.addEventListener("change", Setup);
+                recognitionMode.addEventListener("change", Setup);
+
+                startBtn.addEventListener("click", function () {
+                      if (!recognizer || previousSubscriptionKey != key.value) {
+                          previousSubscriptionKey = key.value;
+                          Setup();
+                      }
+
+                      RecognizerStart(SDK, recognizer);
+                      startBtn.disabled = true;
+                      stopBtn.disabled = false;
+                });
+
+                key.addEventListener("focus", function () {
+                });
+
+                key.addEventListener("focusout", function () {
+                });
+
+                filePicker.addEventListener("change", function () {
+                    Setup();
+                    hypothesisDiv.innerHTML = "";
+                    phraseDiv.innerHTML = "";
+                    RecognizerStart(SDK, recognizer);
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    filePicker.value = "";
+                });
+
+                stopBtn.addEventListener("click", function () {
+                    RecognizerStop(SDK, recognizer);
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                });
+
+                Initialize(function (speechSdk) {
+                    SDK = speechSdk;
+                    startBtn.disabled = false;
+                });
+            });
+
+            function Setup() {
+                if (recognizer != null) {
+                    RecognizerStop(SDK, recognizer);
+                }
+                recognizer = RecognizerSetup(SDK, recognitionMode.value, languageOptions.value, SDK.SpeechResultFormat[formatOptions.value], key.value);
+            }
+
+            function UpdateStatus(status) {
+            }
+
+            function UpdateRecognizedHypothesis(text, append) {
+            }
+
+            function OnSpeechEndDetected() {
+                stopBtn.disabled = true;
+            }
+
+            function UpdateRecognizedPhrase(json) {
+              json = json.text
+                if (json.indexOf("emoji") >= 0) {
+                    // face expression into emoji
+                } else if (json.indexOf("click")) {
+                  let pos = cl.getCurrentPosition();
+                  let x = pos.x
+                  let y = pos.y
+                  console.log("pos", pos)
+                  simulate(document.getElementById("btn"), "click", { pointerX: x, pointerY: y })
+                }
+            }
+
+            function OnComplete() {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+
+        $(function() {
+          startBtn.click();
+        })
+        </script>
+</body>
+</html>
